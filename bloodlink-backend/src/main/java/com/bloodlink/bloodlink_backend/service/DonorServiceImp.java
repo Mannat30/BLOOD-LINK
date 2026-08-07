@@ -1,4 +1,4 @@
-package com.bloodlink.bloodlink_backend.service.impl;
+package com.bloodlink.bloodlink_backend.service;
 
 import com.bloodlink.bloodlink_backend.dto.DonorResponse;
 import com.bloodlink.bloodlink_backend.dto.DonorProfileRequest;

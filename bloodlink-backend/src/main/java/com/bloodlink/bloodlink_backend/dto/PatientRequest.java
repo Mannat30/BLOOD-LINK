@@ -2,6 +2,8 @@ package com.bloodlink.bloodlink_backend.dto;
 
 import com.bloodlink.bloodlink_backend.Enum.BloodGroup;
 import com.bloodlink.bloodlink_backend.Enum.Gender;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,14 +13,18 @@ import java.time.LocalDate;
 @Setter
 public class PatientRequest {
 
+    @NotBlank
+    private String patientName;
+
+    @NotNull
+    private Integer age;
+
+    @NotNull
     private BloodGroup bloodGroup;
 
-    private Gender gender;
+    @NotBlank
+    private String disease;
 
-    private LocalDate dateOfBirth;
-
-    private String medicalCondition;
-
-    private Boolean emergencyContactAvailable;
-
+    @NotBlank
+    private String city;
 }

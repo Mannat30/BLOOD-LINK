@@ -4,6 +4,8 @@ import com.bloodlink.bloodlink_backend.Enum.BloodGroup;
 import com.bloodlink.bloodlink_backend.Enum.EmergencyType;
 import com.bloodlink.bloodlink_backend.Enum.RequestPriority;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,19 +16,18 @@ import java.util.UUID;
 @Setter
 public class BloodRequestDto {
 
+    @NotNull
     private UUID patientId;
 
+    @NotNull
     private UUID hospitalId;
 
+    @NotNull
     private BloodGroup bloodGroup;
 
+    @Min(value = 1)
     private Integer unitsRequired;
 
-    private RequestPriority priority;
-
+    @NotNull
     private EmergencyType emergencyType;
-
-    private String reason;
-
-    private LocalDateTime requiredBefore;
 }
