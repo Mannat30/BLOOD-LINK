@@ -1,12 +1,11 @@
 package com.bloodlink.bloodlink_backend.service;
-import com.bloodlink.bloodlink_backend.entity.User;
-import com.bloodlink.bloodlink_backend.service.AuthService;
+
 import com.bloodlink.bloodlink_backend.dto.AuthResponse;
 import com.bloodlink.bloodlink_backend.dto.LoginRequest;
 import com.bloodlink.bloodlink_backend.dto.RegisterRequest;
+import com.bloodlink.bloodlink_backend.entity.User;
 import com.bloodlink.bloodlink_backend.repo.Userrepo;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.bloodlink.bloodlink_backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,32 +14,90 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImp implements AuthService{
+public class AuthServiceImp implements AuthService {
+
     private final Userrepo repo;
+
     private final PasswordEncoder encode;
+
     private final AuthenticationManager manager;
+
+    private final JwtService jwtService;
+
+
+    // =========================
+    // REGISTER
+    // =========================
+
     @Override
-    public AuthResponse register(RegisterRequest req){
-        if(repo.existsByEmail(req.getEmail())){
-            throw new RuntimeException("Email already exists");
+    public AuthResponse register(RegisterRequest req) {
+
+        if (repo.existsByEmail(req.getEmail())) {
+
+            throw new RuntimeException(
+                    "Email already exists"
+            );
         }
-        if(repo.existsByPhoneNumber(req.getPhoneNumber())){
-            throw new RuntimeException("Phone number already exists");
+
+        if (repo.existsByPhoneNumber(req.getPhoneNumber())) {
+
+            throw new RuntimeException(
+                    "Phone number already exists"
+            );
         }
-        User user=new User();
+
+        User user = new User();
+
         user.setName(req.getName());
-        user.setRole(req.getRole());
+
+
         user.setEmail(req.getEmail());
+
         user.setPhoneNumber(req.getPhoneNumber());
-        user.setPassword(encode.encode(req.getPassword()));
-        user.setStatus(req.getStatus());
+
+        user.setPassword(
+                encode.encode(req.getPassword())
+        );
+
         repo.save(user);
-        return new AuthResponse(null,"User registered successfully");
-    }
-    public AuthResponse login(LoginRequest req){
-   manager.authenticate(new UsernamePasswordAuthenticationToken(req.getEmail(),req.getPassword()));
-        return new AuthResponse(null,"User logged in successfully");
+
+        return new AuthResponse(
+                null,
+                "User registered successfully"
+        );
     }
 
 
+    // =========================
+    // LOGIN
+    // =========================
+
+    @Override
+    public AuthResponse login(LoginRequest req) {
+
+        // 1. Authenticate user
+        manager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        req.getEmail(),
+                        req.getPassword()
+                )
+        );
+
+        // 2. Get user from database
+        User user = repo.findByEmail(req.getEmail())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "User not found"
+                        )
+                );
+
+        // 3. Generate JWT
+        String token = jwtService.generateToken(user);
+
+        // 4. Return JWT
+        return new AuthResponse(
+                token,
+                "User logged in successfully"
+        );
+    }
 }

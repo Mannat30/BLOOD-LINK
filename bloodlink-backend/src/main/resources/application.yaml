@@ -5,7 +5,8 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bloodlink_db
     username: postgres
-    password: root
+    password: mannat
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -14,10 +15,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-server:
-  port: 8080
-  jwt:
-    secret: 8d8f7b6c5a4d3e2f1a9b8c7d6e5f4a3b8d8f7b6c5a4d3e2f1a9b8c7d6e5f4a3b
-    expiration: 86400000
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+
+# =========================
+# JWT CONFIGURATION
+# =========================
+
+jwt:
+  secret: BloodLinkAI2026SuperSecretKeyForJWTAuthentication123

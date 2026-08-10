@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class DonorServiceImpl implements DonorService {
+class DonorServiceImpl implements DonorService {
 
     private final DonorRepo donorRepository;
     private final Userrepo userRepository;
@@ -64,8 +64,6 @@ public class DonorServiceImpl implements DonorService {
         donor.setGender(request.getGender());
         donor.setDateOfBirth(request.getDateOfBirth());
         donor.setWeight(request.getWeight());
-        donor.setLastDonationDate(request.getLastDonationDate());
-        donor.setAvailable(request.getAvailable());
         donor.setCity(request.getCity());
         donor.setState(request.getState());
         donor.setPincode(request.getPincode());
@@ -101,7 +99,7 @@ public class DonorServiceImpl implements DonorService {
 
     @Override
     public DonorResponse updateProfile(UUID userId,
-                                              DonorProfileRequest request) {
+                                       DonorProfileRequest request) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -113,8 +111,7 @@ public class DonorServiceImpl implements DonorService {
         donor.setGender(request.getGender());
         donor.setDateOfBirth(request.getDateOfBirth());
         donor.setWeight(request.getWeight());
-        donor.setLastDonationDate(request.getLastDonationDate());
-        donor.setAvailable(request.getAvailable());
+
         donor.setCity(request.getCity());
         donor.setState(request.getState());
         donor.setPincode(request.getPincode());

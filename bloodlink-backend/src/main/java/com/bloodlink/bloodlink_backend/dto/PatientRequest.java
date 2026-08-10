@@ -13,18 +13,18 @@ import java.time.LocalDate;
 @Setter
 public class PatientRequest {
 
-    @NotBlank
-    private String patientName;
-
-    @NotNull
-    private Integer age;
-
     @NotNull
     private BloodGroup bloodGroup;
 
-    @NotBlank
-    private String disease;
+    @NotNull
+    private Gender gender;
+
+    @NotNull
+    private LocalDate dateOfBirth;
 
     @NotBlank
-    private String city;
+    private String medicalCondition;
+
+    @NotNull
+    private Boolean emergencyContactAvailable;
 }

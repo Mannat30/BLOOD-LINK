@@ -5,6 +5,7 @@ import com.bloodlink.bloodlink_backend.Enum.EmergencyType;
 import com.bloodlink.bloodlink_backend.Enum.RequestPriority;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,4 +31,13 @@ public class BloodRequestDto {
 
     @NotNull
     private EmergencyType emergencyType;
+
+    @NotNull
+    private RequestPriority priority;
+
+    @NotBlank
+    private String reason;
+
+    @NotNull
+    private LocalDateTime requiredBefore;
 }
