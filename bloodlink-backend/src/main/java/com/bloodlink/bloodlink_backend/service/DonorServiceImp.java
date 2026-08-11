@@ -27,51 +27,97 @@ class DonorServiceImpl implements DonorService {
 
 
     @Override
-    public DonorResponse createProfile(UUID userId,
-                                       DonorProfileRequest request) {
+    public DonorResponse createProfile(
+            UUID userId,
+            DonorProfileRequest request) {
 
-        // User Validation
+        // 1. Find user
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("User not found")
+                );
 
-        // Role Validation
+        // 2. Check user role
         if (user.getRole() != Role.DONOR) {
-            throw new RuntimeException("Only donor can create donor profile");
+            throw new RuntimeException(
+                    "Only donor can create donor profile"
+            );
         }
 
-        // Duplicate Profile Check
+        // 3. Check if donor profile already exists
         if (donorRepository.existsByUser(user)) {
-            throw new RuntimeException("Donor profile already exists");
+            throw new RuntimeException(
+                    "Donor profile already exists"
+            );
         }
 
-        // Age Validation
-        int age = Period.between(request.getDateOfBirth(), LocalDate.now()).getYears();
+        // 4. Age validation
+        int age = Period.between(
+                request.getDateOfBirth(),
+                LocalDate.now()
+        ).getYears();
 
         if (age < 18) {
-            throw new RuntimeException("Age must be at least 18 years");
+            throw new RuntimeException(
+                    "Age must be at least 18 years"
+            );
         }
 
-        // Weight Validation
+        // 5. Weight validation
         if (request.getWeight() < 50) {
-            throw new RuntimeException("Weight must be at least 50 kg");
+            throw new RuntimeException(
+                    "Weight must be at least 50 kg"
+            );
         }
 
-        // Create Donor
+        // 6. Create donor
         Donor donor = new Donor();
 
         donor.setUser(user);
-        donor.setBloodGroup(request.getBloodGroup());
-        donor.setGender(request.getGender());
-        donor.setDateOfBirth(request.getDateOfBirth());
-        donor.setWeight(request.getWeight());
-        donor.setCity(request.getCity());
-        donor.setState(request.getState());
-        donor.setPincode(request.getPincode());
-        donor.setLatitude(request.getLatitude());
-        donor.setLongitude(request.getLongitude());
 
+        donor.setBloodGroup(
+                request.getBloodGroup()
+        );
+
+        donor.setGender(
+                request.getGender()
+        );
+
+        donor.setDateOfBirth(
+                request.getDateOfBirth()
+        );
+
+        donor.setWeight(
+                request.getWeight()
+        );
+
+        donor.setCity(
+                request.getCity()
+        );
+
+        donor.setState(
+                request.getState()
+        );
+
+        donor.setPincode(
+                request.getPincode()
+        );
+
+        donor.setLatitude(
+                request.getLatitude()
+        );
+
+        donor.setLongitude(
+                request.getLongitude()
+        );
+
+        // 7. Default donor values
+        donor.setAvailable(true);
+
+        // 8. Save donor
         donorRepository.save(donor);
 
+        // 9. Return response
         return new DonorResponse(
                 user.getName(),
                 donor.getBloodGroup(),
@@ -79,7 +125,6 @@ class DonorServiceImpl implements DonorService {
                 donor.getAvailable()
         );
     }
-
     @Override
     public DonorResponse getProfile(UUID userId) {
 

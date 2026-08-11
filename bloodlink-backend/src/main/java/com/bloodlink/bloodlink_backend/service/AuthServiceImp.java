@@ -1,5 +1,6 @@
 package com.bloodlink.bloodlink_backend.service;
 
+import com.bloodlink.bloodlink_backend.Enum.Userstatus;
 import com.bloodlink.bloodlink_backend.dto.AuthResponse;
 import com.bloodlink.bloodlink_backend.dto.LoginRequest;
 import com.bloodlink.bloodlink_backend.dto.RegisterRequest;
@@ -33,31 +34,25 @@ public class AuthServiceImp implements AuthService {
     public AuthResponse register(RegisterRequest req) {
 
         if (repo.existsByEmail(req.getEmail())) {
-
-            throw new RuntimeException(
-                    "Email already exists"
-            );
+            throw new RuntimeException("Email already exists");
         }
 
         if (repo.existsByPhoneNumber(req.getPhoneNumber())) {
-
-            throw new RuntimeException(
-                    "Phone number already exists"
-            );
+            throw new RuntimeException("Phone number already exists");
         }
 
         User user = new User();
 
         user.setName(req.getName());
-
-
         user.setEmail(req.getEmail());
-
         user.setPhoneNumber(req.getPhoneNumber());
 
         user.setPassword(
                 encode.encode(req.getPassword())
         );
+
+        user.setRole(req.getRole());
+        user.setStatus(Userstatus.ACTIVE);
 
         repo.save(user);
 
@@ -66,7 +61,6 @@ public class AuthServiceImp implements AuthService {
                 "User registered successfully"
         );
     }
-
 
     // =========================
     // LOGIN

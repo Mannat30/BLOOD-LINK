@@ -1,7 +1,9 @@
 package com.bloodlink.bloodlink_backend.dto;
 
+import com.bloodlink.bloodlink_backend.Enum.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -10,30 +12,26 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RegisterRequest {
-    @Getter
-    @Setter
 
-        @NotBlank(message = "Name is required")
-        @Size(min = 3, max = 100)
-        private String name;
+    @NotBlank(message = "Name is required")
+    @Size(min = 3, max = 100)
+    private String name;
 
-        @NotBlank(message = "Email is required")
-        @Email(message = "Invalid email")
-        private String email;
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email")
+    private String email;
 
-        @NotBlank(message = "Password is required")
-        @Size(
-                min = 8,
-                max = 20,
-                message = "Password must be between 8 and 20 characters"
-        )
-        private String password;
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, max = 20)
+    private String password;
 
-        @NotBlank(message = "Phone number is required")
-        @Pattern(
-                regexp = "^[6-9]\\d{9}$",
-                message = "Invalid phone number"
-        )
-        private String phoneNumber;
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^[6-9]\\d{9}$",
+            message = "Invalid phone number"
+    )
+    private String phoneNumber;
 
+    @NotNull(message = "Role is required")
+    private Role role;
 }
