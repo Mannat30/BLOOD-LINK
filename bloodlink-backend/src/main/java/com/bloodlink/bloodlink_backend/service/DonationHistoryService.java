@@ -8,10 +8,14 @@ import java.util.UUID;
 
 public interface DonationHistoryService {
 
-    DonationHistoryResponse donate(UUID notificationId,
-                                   DonationHistoryRequest request);
+    DonationHistoryResponse donate(
+            UUID notificationId,
+            DonationHistoryRequest request
+    );
 
     List<DonationHistoryResponse> getAllDonations();
 
-    DonationHistoryResponse getDonation(UUID donationId);
+    DonationHistoryResponse getDonation(
+            UUID donationId
+    );
 }
