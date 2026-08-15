@@ -1,8 +1,7 @@
 {
   "name": "blood-link-frontend",
   "version": "0.0.1",
-  "backendUrl": "http://localhost:8080",
-  "type": "module",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -22,7 +21,6 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
     "vite": "^5.1.4"
   }
 }
