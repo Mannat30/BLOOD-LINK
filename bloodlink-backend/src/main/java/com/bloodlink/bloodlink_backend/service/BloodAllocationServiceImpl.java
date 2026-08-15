@@ -96,7 +96,7 @@ public class BloodAllocationServiceImpl implements BloodAllocationService {
         if (remainingUnits == 0) {
 
             bloodRequest.setStatus(
-                    RequestStatus.FULFILLED);
+                    RequestStatus.COMPLETED);
         }
 
         // Save updated blood request
