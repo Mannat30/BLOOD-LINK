@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { hospitalService, bloodRequestService, bloodAllocationService } from '../services/apiService'
-import { HiUser, HiHeart, HiCalendar, HiChartBar, HiBuildingOffice } from 'react-icons/hi'
-
+import {
+  HiOfficeBuilding,
+  HiHeart,
+  HiChartBar,
+  HiUser,
+  HiCalendar
+} from 'react-icons/hi'
 const HospitalDashboard = ({ user }) => {
   const [hospitalProfile, setHospitalProfile] = useState(null)
   const [bloodRequests, setBloodRequests] = useState([])

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { donorService, bloodRequestService, bloodAllocationService } from '../services/apiService'
-import { HiUser, HiHeart, HiCalendar, HiChartBar, HiBuildingOffice } from 'react-icons/hi'
+import { HiUser, HiHeart, HiCalendar, HiChartBar, HiOfficeBuilding } from 'react-icons/hi'
 
 const BloodBankDashboard = ({ user }) => {
   const [donorProfile, setDonorProfile] = useState(null)

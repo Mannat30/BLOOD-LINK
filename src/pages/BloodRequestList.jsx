@@ -2,9 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bloodRequestService } from '../services/apiService'
 import { toast } from 'react-toastify'
-import { 
-  HiSearch, HiTrash, HiPlus, HiClock, HiExclamationTriangle, 
-  HiUser, HiBuilding, HiHeart
+import {
+  HiSearch,
+  HiTrash,
+  HiPlus,
+  HiClock,
+  HiExclamationCircle,
+  HiUser,
+  HiOfficeBuilding,
+  HiHeart
 } from 'react-icons/hi'
 
 const BloodRequestList = () => {

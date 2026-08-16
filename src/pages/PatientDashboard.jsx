@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { patientService, bloodRequestService } from '../services/apiService'
 import { HiUser, HiHeart, HiCalendar, HiChartBar } from 'react-icons/hi'
+import { Link } from 'react-router-dom';
+
 
 const PatientDashboard = ({ user }) => {
   const [patientProfile, setPatientProfile] = useState(null)
