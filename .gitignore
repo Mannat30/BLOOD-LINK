@@ -1,0 +1,26 @@
+.dyad/
+# Frontend
+node_modules/
+dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Java / Spring Boot
+bloodlink-backend/target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
