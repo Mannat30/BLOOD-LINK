@@ -9,47 +9,129 @@ on:
     branches:
       - main
 
+
 jobs:
 
+  # =====================================================
+  # BACKEND TESTS
+  # =====================================================
+
   backend-test:
+
     name: Backend Tests
+
     runs-on: ubuntu-latest
+
+    services:
+
+      postgres:
+        image: postgres:16
+
+        env:
+          POSTGRES_DB: bloodlink_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd="pg_isready -U postgres -d bloodlink_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
 
     defaults:
       run:
         working-directory: bloodlink-backend
 
+
+    env:
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      JWT_SECRET: test-jwt-secret-for-github-actions
+
+      GOOGLE_CLIENT_ID: test-client-id
+      GOOGLE_CLIENT_SECRET: test-client-secret
+
+
     steps:
+
+      # =================================================
+      # CHECKOUT
+      # =================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
+
+      # =================================================
+      # JAVA 17
+      # =================================================
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
+
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
 
-      - name: Run backend tests
-        run: ./mvnw test
 
+      # =================================================
+      # BACKEND TESTS
+      # =================================================
+
+      - name: Run backend tests
+        run: ./mvnw clean test
+
+
+  # =====================================================
+  # FRONTEND BUILD
+  # =====================================================
 
   frontend-build:
+
     name: Frontend Build
+
     runs-on: ubuntu-latest
 
+
     steps:
+
+      # =================================================
+      # CHECKOUT
+      # =================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
+
+      # =================================================
+      # NODE.JS
+      # =================================================
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
+
         with:
-          node-version: '20'
+          node-version: 20
           cache: npm
+
+
+      # =================================================
+      # INSTALL DEPENDENCIES
+      # =================================================
 
       - name: Install dependencies
         run: npm ci
+
+
+      # =================================================
+      # BUILD FRONTEND
+      # =================================================
 
       - name: Build frontend
         run: npm run build
