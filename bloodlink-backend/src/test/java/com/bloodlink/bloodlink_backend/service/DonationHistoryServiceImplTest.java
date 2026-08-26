@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 class DonationHistoryServiceImplTest {
 
@@ -95,6 +94,9 @@ class DonationHistoryServiceImplTest {
         donorMatch.setBloodRequest(
                 bloodRequest
         );
+
+        // Donor has accepted the request
+        donorMatch.setAccepted(true);
 
 
         // =========================
@@ -309,15 +311,6 @@ class DonationHistoryServiceImplTest {
         request.setUnitsDonated(0);
 
 
-        when(
-                notificationRepository.findById(
-                        notificationId
-                )
-        ).thenReturn(
-                Optional.of(notification)
-        );
-
-
         RuntimeException exception =
                 assertThrows(
                         RuntimeException.class,
@@ -333,6 +326,12 @@ class DonationHistoryServiceImplTest {
                 "Units donated must be greater than 0",
                 exception.getMessage()
         );
+
+
+        verify(
+                notificationRepository,
+                never()
+        ).findById(any());
 
 
         verify(
@@ -353,15 +352,6 @@ class DonationHistoryServiceImplTest {
         request.setUnitsDonated(null);
 
 
-        when(
-                notificationRepository.findById(
-                        notificationId
-                )
-        ).thenReturn(
-                Optional.of(notification)
-        );
-
-
         RuntimeException exception =
                 assertThrows(
                         RuntimeException.class,
@@ -377,6 +367,12 @@ class DonationHistoryServiceImplTest {
                 "Units donated must be greater than 0",
                 exception.getMessage()
         );
+
+
+        verify(
+                notificationRepository,
+                never()
+        ).findById(any());
 
 
         verify(
@@ -397,15 +393,6 @@ class DonationHistoryServiceImplTest {
         request.setUnitsDonated(-5);
 
 
-        when(
-                notificationRepository.findById(
-                        notificationId
-                )
-        ).thenReturn(
-                Optional.of(notification)
-        );
-
-
         RuntimeException exception =
                 assertThrows(
                         RuntimeException.class,
@@ -421,6 +408,12 @@ class DonationHistoryServiceImplTest {
                 "Units donated must be greater than 0",
                 exception.getMessage()
         );
+
+
+        verify(
+                notificationRepository,
+                never()
+        ).findById(any());
 
 
         verify(

@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
 class BloodAllocationServiceImplTest {
 
@@ -123,6 +122,10 @@ class BloodAllocationServiceImplTest {
         donation.setBloodRequest(
                 bloodRequest
         );
+
+        // Allocation is allowed only for
+        // successful donations.
+        donation.setSuccessful(true);
 
 
         // =========================
@@ -492,8 +495,9 @@ class BloodAllocationServiceImplTest {
                 );
 
 
+        // FIXED EXPECTED MESSAGE
         assertEquals(
-                "Cannot allocate more units than remaining units",
+                "Cannot allocate more units than remaining units. Remaining units: 5",
                 exception.getMessage()
         );
 
@@ -522,7 +526,6 @@ class BloodAllocationServiceImplTest {
         bloodRequest.setRemainingUnits(2);
 
         bloodRequest.setFulfilledUnits(0);
-
 
         request.setAllocatedUnits(2);
 
@@ -709,10 +712,9 @@ class BloodAllocationServiceImplTest {
 
 
         BloodAllocationResponse response =
-                bloodAllocationService
-                        .getAllocation(
-                                allocationId
-                        );
+                bloodAllocationService.getAllocation(
+                        allocationId
+                );
 
 
         assertNotNull(response);
@@ -782,10 +784,9 @@ class BloodAllocationServiceImplTest {
                 assertThrows(
                         RuntimeException.class,
                         () ->
-                                bloodAllocationService
-                                        .getAllocation(
-                                                allocationId
-                                        )
+                                bloodAllocationService.getAllocation(
+                                        allocationId
+                                )
                 );
 
 

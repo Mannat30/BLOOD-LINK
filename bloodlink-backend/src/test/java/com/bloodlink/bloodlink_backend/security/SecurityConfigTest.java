@@ -58,7 +58,7 @@ class SecurityConfigTest {
                         get("/api/blood-request")
                 )
                 .andExpect(
-                        status().is3xxRedirection()
+                        status().isUnauthorized()
                 );
     }
 

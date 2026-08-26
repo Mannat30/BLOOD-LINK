@@ -36,6 +36,7 @@ public class MatchingServiceImp implements MatchingService {
                 realtimeNotificationService;
     }
 
+
     // =====================================================
     // DETERMINE SEARCH RADIUS
     // =====================================================
@@ -65,10 +66,6 @@ public class MatchingServiceImp implements MatchingService {
     public List<Donor> findEligibleDonors(
             BloodRequest request) {
 
-        // =================================================
-        // 1. GET HOSPITAL LOCATION
-        // =================================================
-
         double hospitalLatitude =
                 request.getHospital().getLatitude();
 
@@ -76,20 +73,12 @@ public class MatchingServiceImp implements MatchingService {
                 request.getHospital().getLongitude();
 
 
-        // =================================================
-        // 2. DETERMINE SEARCH RADIUS
-        // =================================================
-
         double radiusKm =
                 getSearchRadius(request);
 
         double radiusMeters =
                 radiusKm * 1000;
 
-
-        // =================================================
-        // 3. POSTGIS SPATIAL SEARCH
-        // =================================================
 
         List<Donor> donors =
                 donorRepo.findAvailableDonorsWithinRadius(
@@ -102,10 +91,6 @@ public class MatchingServiceImp implements MatchingService {
         List<Donor> eligibleDonors =
                 new ArrayList<>();
 
-
-        // =================================================
-        // 4. BLOOD + DONATION ELIGIBILITY
-        // =================================================
 
         for (Donor donor : donors) {
 
@@ -156,13 +141,12 @@ public class MatchingServiceImp implements MatchingService {
         List<Donor> eligibleDonors =
                 findEligibleDonors(request);
 
-
         List<DonorMatch> matches =
                 new ArrayList<>();
 
 
         // =================================================
-        // 2. CALCULATE SCORE FOR EACH DONOR
+        // 2. CALCULATE SCORE
         // =================================================
 
         for (Donor donor : eligibleDonors) {
@@ -312,34 +296,7 @@ public class MatchingServiceImp implements MatchingService {
 
             match.setAccepted(false);
 
-
-            // =============================================
-            // IMPORTANT:
-            // SAVE FIRST
-            // Hibernate generates DonorMatch ID here
-            // =============================================
-
-            DonorMatch savedMatch =
-                    donorMatchRepository.save(match);
-
-            System.out.println(
-                    "DonorMatch created: " +
-                            savedMatch.getId()
-            );
-
-            System.out.println(
-                    "Donor ID: " +
-                            savedMatch.getDonor().getId()
-            );
-
-            System.out.println(
-                    "Final Score: " +
-                            savedMatch.getFinalScore()
-            );
-
-
-            // Add SAVED match to response list
-            matches.add(savedMatch);
+            matches.add(match);
         }
 
 
@@ -357,23 +314,51 @@ public class MatchingServiceImp implements MatchingService {
 
 
         // =================================================
-        // 4. ASSIGN RANK + UPDATE DATABASE
+        // 4. ASSIGN RANK + SAVE ONCE
         // =================================================
 
         int rank = 1;
+
+        List<DonorMatch> savedMatches =
+                new ArrayList<>();
+
 
         for (DonorMatch match : matches) {
 
             match.setRank(rank++);
 
-            donorMatchRepository.save(match);
+
+            DonorMatch savedMatch =
+                    donorMatchRepository.save(match);
+
+
+            System.out.println(
+                    "DonorMatch created: " +
+                            savedMatch.getId()
+            );
+
+
+            System.out.println(
+                    "Donor ID: " +
+                            savedMatch.getDonor().getId()
+            );
+
+
+            System.out.println(
+                    "Final Score: " +
+                            savedMatch.getFinalScore()
+            );
+
 
             System.out.println(
                     "DonorMatch ID: " +
-                            match.getId() +
+                            savedMatch.getId() +
                             " | Rank: " +
-                            match.getRank()
+                            savedMatch.getRank()
             );
+
+
+            savedMatches.add(savedMatch);
         }
 
 
@@ -384,7 +369,7 @@ public class MatchingServiceImp implements MatchingService {
         if (request.getPriority() ==
                 RequestPriority.CRITICAL) {
 
-            matches.stream()
+            savedMatches.stream()
                     .limit(10)
                     .forEach(match -> {
 
@@ -425,7 +410,7 @@ public class MatchingServiceImp implements MatchingService {
         // 6. RETURN TOP 10
         // =================================================
 
-        return matches
+        return savedMatches
                 .stream()
                 .limit(10)
                 .toList();

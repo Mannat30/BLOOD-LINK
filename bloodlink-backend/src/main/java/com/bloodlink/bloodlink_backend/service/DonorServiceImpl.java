@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class DonorServiceImp implements DonorService {
+public class DonorServiceImpl implements DonorService {
 
     private final DonorRepo donorRepository;
     private final Userrepo userRepository;

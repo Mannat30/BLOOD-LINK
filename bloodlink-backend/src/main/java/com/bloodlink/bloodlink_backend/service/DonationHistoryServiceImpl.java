@@ -6,7 +6,6 @@ import com.bloodlink.bloodlink_backend.entity.DonationHistory;
 import com.bloodlink.bloodlink_backend.entity.Donor;
 import com.bloodlink.bloodlink_backend.entity.DonorMatch;
 import com.bloodlink.bloodlink_backend.entity.Notification;
-import com.bloodlink.bloodlink_backend.Enum.NotificationStatus;
 import com.bloodlink.bloodlink_backend.repo.DonationHistoryRepository;
 import com.bloodlink.bloodlink_backend.repo.NotificationRepository;
 import org.springframework.stereotype.Service;
@@ -33,7 +32,6 @@ public class DonationHistoryServiceImpl
                 notificationRepository;
     }
 
-
     // =====================================================
     // RECORD DONATION
     // =====================================================
@@ -45,7 +43,20 @@ public class DonationHistoryServiceImpl
             DonationHistoryRequest request) {
 
         // =================================================
-        // 1. FIND NOTIFICATION
+        // 1. VALIDATE UNITS FIRST
+        // =================================================
+
+        if (request == null ||
+                request.getUnitsDonated() == null ||
+                request.getUnitsDonated() <= 0) {
+
+            throw new RuntimeException(
+                    "Units donated must be greater than 0"
+            );
+        }
+
+        // =================================================
+        // 2. FIND NOTIFICATION
         // =================================================
 
         Notification notification =
@@ -56,9 +67,8 @@ public class DonationHistoryServiceImpl
                                 )
                         );
 
-
         // =================================================
-        // 2. GET DONOR MATCH
+        // 3. GET DONOR MATCH
         // =================================================
 
         DonorMatch donorMatch =
@@ -71,9 +81,8 @@ public class DonationHistoryServiceImpl
             );
         }
 
-
         // =================================================
-        // 3. CHECK ACCEPTANCE
+        // 4. CHECK ACCEPTANCE
         // =================================================
 
         if (!Boolean.TRUE.equals(
@@ -84,9 +93,8 @@ public class DonationHistoryServiceImpl
             );
         }
 
-
         // =================================================
-        // 4. GET DONOR + BLOOD REQUEST
+        // 5. GET DONOR + BLOOD REQUEST
         // =================================================
 
         Donor donor =
@@ -95,23 +103,8 @@ public class DonationHistoryServiceImpl
         var bloodRequest =
                 donorMatch.getBloodRequest();
 
-
-        // =================================================
-        // 5. VALIDATE UNITS
-        // =================================================
-
-        if (request.getUnitsDonated() == null ||
-                request.getUnitsDonated() <= 0) {
-
-            throw new RuntimeException(
-                    "Units donated must be greater than 0"
-            );
-        }
-
-
         int unitsDonated =
                 request.getUnitsDonated();
-
 
         // =================================================
         // 6. CREATE DONATION HISTORY
@@ -132,7 +125,6 @@ public class DonationHistoryServiceImpl
 
         donation.setSuccessful(true);
 
-
         // =================================================
         // 7. SAVE DONATION
         // =================================================
@@ -141,7 +133,6 @@ public class DonationHistoryServiceImpl
                 donationHistoryRepository.save(
                         donation
                 );
-
 
         // =================================================
         // 8. UPDATE DONOR STATISTICS
@@ -156,7 +147,6 @@ public class DonationHistoryServiceImpl
                 successfulDonations + 1
         );
 
-
         int acceptedRequests =
                 donor.getTotalRequestsAccepted() == null
                         ? 0
@@ -166,10 +156,8 @@ public class DonationHistoryServiceImpl
                 acceptedRequests + 1
         );
 
-
-        // Donor is no longer immediately available
+        // Donor becomes unavailable after donation
         donor.setAvailable(false);
-
 
         // =================================================
         // 9. PREPARE RESPONSE
@@ -202,10 +190,8 @@ public class DonationHistoryServiceImpl
                 savedDonation.getSuccessful()
         );
 
-
         return response;
     }
-
 
     // =====================================================
     // GET ALL DONATIONS
@@ -217,41 +203,9 @@ public class DonationHistoryServiceImpl
         return donationHistoryRepository
                 .findAll()
                 .stream()
-                .map(donation -> {
-
-                    DonationHistoryResponse response =
-                            new DonationHistoryResponse();
-
-                    response.setDonationId(
-                            donation.getId()
-                    );
-
-                    response.setDonorId(
-                            donation.getDonor().getId()
-                    );
-
-                    response.setRequestId(
-                            donation.getBloodRequest().getId()
-                    );
-
-                    response.setUnitsDonated(
-                            donation.getUnitsDonated()
-                    );
-
-                    response.setDonationDate(
-                            donation.getDonationDate()
-                    );
-
-                    response.setSuccessful(
-                            donation.getSuccessful()
-                    );
-
-                    return response;
-
-                })
+                .map(this::convertToResponse)
                 .toList();
     }
-
 
     // =====================================================
     // GET DONATION BY ID
@@ -270,6 +224,15 @@ public class DonationHistoryServiceImpl
                                 )
                         );
 
+        return convertToResponse(donation);
+    }
+
+    // =====================================================
+    // CONVERT ENTITY → DTO
+    // =====================================================
+
+    private DonationHistoryResponse convertToResponse(
+            DonationHistory donation) {
 
         DonationHistoryResponse response =
                 new DonationHistoryResponse();
@@ -297,7 +260,6 @@ public class DonationHistoryServiceImpl
         response.setSuccessful(
                 donation.getSuccessful()
         );
-
 
         return response;
     }
