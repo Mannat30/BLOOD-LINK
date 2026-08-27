@@ -1,17 +1,25 @@
 import { Client } from '@stomp/stompjs'
 
-const WS_URL = 'ws://localhost:8080/ws'
+const WS_URL =
+    import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws'
 
 let client = null
 
-export const connectDonorWebSocket = (donorId, onEmergencyAlert) => {
+export const connectDonorWebSocket = (
+    donorId,
+    onEmergencyAlert
+) => {
 
     if (!donorId) {
-        console.error('Cannot connect WebSocket: donorId is missing')
+        console.error(
+            'Cannot connect WebSocket: donorId is missing'
+        )
+
         return () => {}
     }
 
     client = new Client({
+
         brokerURL: WS_URL,
 
         reconnectDelay: 5000,
