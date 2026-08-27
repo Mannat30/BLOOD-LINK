@@ -1,910 +1,703 @@
-# 🩸 BloodLink
+# BloodLink
 
-### Intelligent Emergency Blood Donor Matching Platform
+> A full-stack blood donation platform that connects patients, donors, hospitals and blood banks through secure authentication, intelligent donor matching and real-time emergency notifications.
 
-BloodLink is a full-stack emergency blood donation platform designed to connect patients and hospitals with eligible blood donors based on blood-group compatibility, geographic proximity, donor availability, donation history, reliability, and emergency priority.
+## 🚀 Overview
 
-The platform combines a React frontend with a Spring Boot backend, PostgreSQL persistence, JWT/OAuth2 authentication, and WebSocket-based real-time emergency notifications.
+BloodLink is a full-stack blood donation management platform designed to make emergency blood requests faster and more organized.
 
----
+The platform provides role-based workflows for donors, patients, hospitals and blood banks while using a weighted donor-matching system to rank suitable donors based on compatibility, distance, availability, donation history and reliability.
 
-## 🎯 Problem
-
-During an emergency blood requirement, finding a suitable donor quickly can be difficult.
-
-A simple blood-group search is often not enough. A practical donor matching system should also consider:
-
-- Blood-group compatibility
-- Distance from the hospital
-- Current donor availability
-- Previous donation history
-- Donor response reliability
-- Emergency priority
-
-BloodLink addresses this problem by first filtering eligible donors and then ranking them using an explainable multi-factor scoring algorithm.
+For emergency requests, the system also supports real-time notifications using WebSocket/STOMP.
 
 ---
 
-# ✨ Features
+## ✨ Key Features
 
-## 🔐 Authentication & Security
+### 🔐 Authentication & Security
 
 - JWT-based authentication
-- Google OAuth2 authentication
-- Spring Security integration
-- Role-based authorization
-- Password encryption
+- Secure password hashing using BCrypt
+- Role-based access control
+- Google OAuth2 login
+- Stateless Spring Security configuration
+- CORS configuration
 - Protected REST APIs
-- Custom JWT authentication filter
-- Environment-based secret configuration
+- JWT validation and expiration handling
 
----
+### 🩸 Donor Matching
 
-## 🩸 Emergency Blood Requests
+BloodLink ranks potential donors using a weighted scoring algorithm.
 
-Users can:
+The matching system considers:
 
-- Create blood requests
-- Specify required blood group
-- Specify required units
-- Set request priority
-- Associate requests with hospitals
-- View pending requests
-- Track request status
-- Manage emergency requests
+- Blood group compatibility
+- Distance from the patient
+- Donor availability
+- Successful donation history
+- Donor acceptance/reliability
+- BloodLink score
+- Request priority
 
----
-
-## 🧠 Intelligent Donor Matching
-
-BloodLink uses an explainable multi-factor donor ranking algorithm.
-
-The matching pipeline:
-
-1. Determines the search radius based on request priority
-2. Finds available donors within the geographic radius
-3. Filters donors by blood-group compatibility
-4. Applies the 90-day donation eligibility rule
-5. Calculates a multi-factor matching score
-6. Sorts donors by final score
-7. Assigns ranks
-8. Returns the top 10 matches
-
----
-
-# 🧮 Donor Matching Algorithm
-
-## 1. Dynamic Search Radius
-
-The geographic search radius depends on emergency priority.
-
-| Request Priority | Search Radius |
-|------------------|---------------|
-| CRITICAL | 10 km |
-| HIGH | 25 km |
-| NORMAL | 50 km |
-
-Critical requests use a smaller search radius because nearby donors are more valuable when the situation is highly urgent.
-
----
-
-## 2. Eligibility Filtering
-
-Before ranking, donors must pass the eligibility checks.
-
-### Blood Compatibility
-
-The donor's blood group is checked against the blood group required by the blood request.
-
-Incompatible donors are excluded before scoring.
-
-### Donation Eligibility
-
-A donor who donated blood less than 90 days ago is excluded.
+The system supports different distance thresholds depending on request priority.
 
 ```text
-Days Since Last Donation >= 90
+CRITICAL → 10 km
+HIGH     → 25 km
+NORMAL   → 50 km
 ```
 
-### Geographic Filtering
+### 🚨 Emergency Blood Requests
 
-Only available donors within the priority-specific geographic radius are retrieved for matching.
+Patients can create blood requests with different priorities.
+
+The system can:
+
+1. Receive the blood request
+2. Identify compatible donors
+3. Calculate donor scores
+4. Rank suitable donors
+5. Notify relevant donors
+6. Support real-time emergency communication
+
+### ⚡ Real-Time Notifications
+
+WebSocket/STOMP is used for real-time communication.
+
+This allows emergency notifications to be delivered without requiring the donor to continuously refresh the page.
+
+### 👤 Role-Based Dashboards
+
+Different workflows are provided for:
+
+- Donors
+- Patients
+- Hospitals
+- Blood Banks
+
+Each role receives access to the functionality relevant to its responsibilities.
+
+### 📊 Donor Profile & History
+
+Donor-related information includes:
+
+- Profile information
+- Blood group
+- Availability
+- Donation history
+- Reliability information
+- Matching score
 
 ---
 
-# 📊 Matching Score
+# 🧠 Donor Matching Algorithm
 
-Each eligible donor receives a final matching score.
+The core matching logic uses a weighted scoring approach.
 
-| Factor | Maximum Contribution |
-|--------|----------------------|
+## Score Components
+
+For a normal-priority request, the scoring model uses:
+
+| Factor | Weight |
+|---|---:|
 | Blood Compatibility | 40 |
-| Geographic Proximity | 25 |
+| Distance | 25 |
 | Availability | 15 |
 | Donation History | 10 |
 | Reliability | 10 |
-| BloodLink Score | 10 |
 
-### Final Score
+An additional BloodLink score contribution is normalized and incorporated into the final score.
 
-```text
-Final Score =
-    Compatibility Score
-  + Distance Score
-  + Availability Score
-  + Donation History Score
-  + Reliability Score
-  + (BloodLink Score × 0.10)
-```
+### Distance Scoring
 
-The final score is capped at `100`.
-
-The BloodLink score is normalized to the range `0–100` before contributing to the final score.
-
----
-
-# 📍 Distance Scoring
-
-Distance is converted into a normalized score based on request priority.
+Distance is converted into a score using the request priority.
 
 ```text
-Distance Score =
-    25 × (1 - distance / maximum search radius)
+Distance Score = 25 × (1 - distance / maximum allowed distance)
 ```
 
-If the donor is at or beyond the maximum search radius:
+The maximum distance depends on request priority:
 
 ```text
-Distance Score = 0
+CRITICAL → 10 km
+HIGH     → 25 km
+NORMAL   → 50 km
 ```
 
-This means closer eligible donors receive a higher geographic score.
+A donor outside the applicable maximum distance receives a distance score of `0`.
 
-### Example
+### Donation History
 
-For a `HIGH` priority request:
-
-```text
-Maximum Radius = 25 km
-
-5 km  → 20 points
-10 km → 15 points
-20 km → 5 points
-25 km → 0 points
-```
-
----
-
-# 🩸 Donation History Score
-
-Successful previous donations contribute to the donor's score.
+Successful donations contribute to the donor score:
 
 ```text
 Donation History Score =
-    min(successful donations × 2, 10)
+min(successfulDonations × 2, 10)
 ```
 
-| Successful Donations | Score |
-|----------------------|-------|
-| 0 | 0 |
-| 1 | 2 |
-| 2 | 4 |
-| 3 | 6 |
-| 4 | 8 |
-| 5+ | 10 |
+This prevents donation history from dominating the complete matching score.
 
-The score is capped at `10` so that donation count cannot dominate the other matching factors.
+### Reliability
 
----
-
-# 🤝 Reliability Score
-
-Donor reliability is calculated from previous request responses.
+Reliability is calculated from accepted and rejected requests:
 
 ```text
 Acceptance Rate =
-    Accepted Requests /
-    (Accepted Requests + Rejected Requests)
+accepted / (accepted + rejected)
 ```
 
 Then:
 
 ```text
 Reliability Score =
-    Acceptance Rate × 10
+Acceptance Rate × 10
 ```
 
-For a donor without previous response history, a neutral score of `5` is assigned.
+For a donor without previous activity, a default reliability score is used.
 
----
+### Final Score
 
-# 🏆 Donor Ranking
-
-After calculating the final score, eligible donors are sorted in descending order.
+The final score combines the individual components and is capped at 100.
 
 ```text
-Highest Score
-      ↓
-    Rank 1
-      ↓
-    Rank 2
-      ↓
-    Rank 3
-      ↓
-     ...
-      ↓
-    Rank 10
+Final Score =
+    Compatibility
+  + Distance
+  + Availability
+  + Donation History
+  + Reliability
+  + BloodLink Score Contribution
 ```
 
-Each `DonorMatch` stores information including:
-
-- Donor
-- Blood request
-- Distance
-- Compatibility score
-- Availability score
-- Donation history score
-- Reliability score
-- BloodLink score
-- Final score
-- Rank
-- Notification status
-- Acceptance status
+The result is then used to rank compatible donors.
 
 ---
 
-# 🚨 Critical Emergency Flow
+# 🏗️ Architecture
 
-For `CRITICAL` blood requests, the system sends real-time emergency alerts to the top 10 ranked donors.
+BloodLink follows a layered Spring Boot architecture.
 
 ```text
-Patient
-   │
-   ▼
-Create Critical Blood Request
-   │
-   ▼
-Find Eligible Donors
-   │
-   ▼
-Calculate Matching Scores
-   │
-   ▼
-Sort by Final Score
-   │
-   ▼
-Top 10 Donors
-   │
-   ▼
-WebSocket / STOMP
-   │
-   ▼
-Real-Time Emergency Alert
-   │
-   ▼
-Donor Accepts / Rejects
-```
+                    ┌─────────────────────┐
+                    │   React Frontend    │
+                    │                     │
+                    │  Donor / Patient    │
+                    │  Hospital / Bank    │
+                    └──────────┬──────────┘
+                               │
+                         REST / WebSocket
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Spring Boot API   │
+                    └──────────┬──────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+              ▼                ▼                ▼
+        Controllers       Security          Services
+              │                │                │
+              │          JWT / OAuth2           │
+              │                │                │
+              └────────────────┼────────────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Spring Data JPA  │
+                    │      / Hibernate    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │     PostgreSQL      │
+                    └─────────────────────┘
 
-This allows urgent requests to reach suitable donors without depending only on periodic polling.
+                         WebSocket/STOMP
+                               │
+                               ▼
+                    Real-Time Notifications
+```
 
 ---
 
-# ⚡ Real-Time Notification Architecture
+# 🛠️ Technology Stack
+
+## Frontend
+
+- React
+- React Router
+- Axios
+- Tailwind CSS
+- Vite
+- Lucide React
+- React Icons
+- React Toastify
+- STOMP.js
+
+## Backend
+
+- Java 17
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- Hibernate
+- Spring Security
+- JWT
+- OAuth2
+- WebSocket
+- STOMP
+- Bean Validation
+- Lombok
+
+## Database
+
+- PostgreSQL
+
+## Testing
+
+- JUnit 5
+- Mockito
+- Spring Boot Test
+- MockMvc
+- Spring Security Test
+- JaCoCo
+
+## Deployment / Development
+
+- Docker
+- Docker Compose
+- Maven
+- GitHub
+- Vercel
+
+---
+
+# 🧪 Testing & Code Quality
+
+The backend includes automated unit and integration tests using JUnit 5, Mockito, Spring Boot Test and MockMvc.
+
+JaCoCo is used to measure test coverage.
+
+## Current Coverage
+
+| Layer | Instruction Coverage | Branch Coverage |
+|---|---:|---:|
+| Service | 95% | 79% |
+| Security | 81% | 62% |
+| Controller | 86% | N/A |
+| Utility | 95% | 100% |
+| Config | 100% | N/A |
+| Exception | 100% | N/A |
+| DTO | 100% | N/A |
+| Enum | 100% | N/A |
+| **Overall** | **93%** | **76%** |
+
+The coverage report was generated using JaCoCo across 63 backend classes.
+
+### Run Tests
+
+From the backend directory:
+
+```bash
+./mvnw clean test
+```
+
+On Windows:
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+### JaCoCo Report
+
+After running the tests:
+
+```text
+target/site/jacoco/index.html
+```
+
+Open this file in a browser to view the detailed coverage report.
+
+---
+
+# 🔒 Security
+
+BloodLink uses Spring Security with JWT authentication.
+
+### Authentication Flow
+
+```text
+User
+ │
+ │ Login credentials
+ ▼
+AuthController
+ │
+ ▼
+AuthService
+ │
+ ▼
+AuthenticationManager
+ │
+ ▼
+UserDetailsService
+ │
+ ▼
+PasswordEncoder
+ │
+ ▼
+JWT Service
+ │
+ ▼
+JWT Token
+ │
+ ▼
+Client
+```
+
+For protected requests:
+
+```text
+Client
+  │
+  │ Authorization: Bearer <JWT>
+  ▼
+JWT Authentication Filter
+  │
+  ▼
+Token Validation
+  │
+  ▼
+SecurityContext
+  │
+  ▼
+Protected Controller
+```
+
+Sensitive configuration such as database credentials, JWT secrets and OAuth credentials is supplied through environment variables rather than committed directly to the repository.
+
+---
+
+# ⚡ Real-Time Communication
 
 BloodLink uses WebSocket/STOMP for real-time communication.
 
+The purpose is to support emergency notifications where a donor may need to be informed immediately after a matching blood request is created.
+
+Conceptually:
+
 ```text
-┌──────────────────┐
-│  React Frontend  │
-└────────┬─────────┘
-         │
-         │ WebSocket
-         ▼
-┌──────────────────┐
-│ Spring WebSocket │
-│      Layer       │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│  Notification    │
-│     Service      │
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ Matching Service │
-└──────────────────┘
+Patient creates emergency request
+              │
+              ▼
+       Backend processes
+              │
+              ▼
+       Find compatible donors
+              │
+              ▼
+       Calculate donor scores
+              │
+              ▼
+       Select relevant donors
+              │
+              ▼
+        WebSocket/STOMP
+              │
+              ▼
+      Donor receives alert
 ```
 
-The real-time layer is responsible for delivering time-sensitive emergency notifications while REST APIs handle persistent application data.
+This avoids relying only on periodic frontend polling for emergency notifications.
 
 ---
 
-# 🏗️ System Architecture
+# 🗄️ Database
+
+PostgreSQL is used as the primary relational database.
+
+The backend uses:
 
 ```text
-┌─────────────────────────────────────────────┐
-│                React Frontend               │
-│                                             │
-│   Pages │ Components │ Services │ Router    │
-└──────────────────────┬──────────────────────┘
-                       │
-                 REST / WebSocket
-                       │
-                       ▼
-┌─────────────────────────────────────────────┐
-│              Spring Boot Backend            │
-│                                             │
-│  Controllers                                │
-│       ↓                                     │
-│  Services                                   │
-│       ↓                                     │
-│  Repositories                               │
-│       ↓                                     │
-│  PostgreSQL                                 │
-│                                             │
-│  Security │ JWT │ OAuth2 │ WebSocket        │
-└──────────────────────┬──────────────────────┘
-                       │
-                       ▼
-               ┌───────────────┐
-               │  PostgreSQL   │
-               └───────────────┘
+Spring Data JPA
+       ↓
+Hibernate
+       ↓
+PostgreSQL
 ```
+
+JPA entities represent the main application domain and repositories provide database access.
 
 ---
 
-# 🛠️ Tech Stack
+# 📸 Screenshots
 
-| Category | Technology |
-|----------|------------|
-| Frontend | React.js, Vite |
-| Styling | Tailwind CSS |
-| Backend | Java 17, Spring Boot |
-| REST API | Spring Web |
-| Security | Spring Security |
-| Authentication | JWT, Google OAuth2 |
-| ORM | Spring Data JPA, Hibernate |
-| Database | PostgreSQL |
-| Real-Time | WebSocket, STOMP |
-| API Documentation | Swagger / OpenAPI |
-| Testing | JUnit, Mockito, Spring Security Test |
-| Build | Maven |
-| Containerization | Docker, Docker Compose |
-| HTTP Client | Axios |
-| Version Control | Git, GitHub |
+## Login
+
+![BloodLink Login](docs/screenshots/login.png)
+
+## Donor Dashboard
+
+![Donor Dashboard](docs/screenshots/donor-dashboard.png)
+
+## Donor Profile
+
+![Donor Profile](docs/screenshots/donor-profile.png)
+
+## Blood Request
+
+![Blood Request](docs/screenshots/blood-request.png)
+
+## Notifications
+
+![Notifications](docs/screenshots/notifications.png)
+
+> Screenshots demonstrate the main user workflows and application interface.
+
+---
+
+# 🧩 Important Technical Challenge
+
+One of the main challenges was designing a donor-ranking mechanism that considers multiple factors instead of selecting donors only by blood group.
+
+A simple blood-group filter can produce many compatible donors without considering practical factors such as distance, availability or previous donation behavior.
+
+BloodLink addresses this by separating compatibility from ranking.
+
+```text
+Compatible Donors
+       │
+       ▼
+Distance
+       │
+       ▼
+Availability
+       │
+       ▼
+Donation History
+       │
+       ▼
+Reliability
+       │
+       ▼
+Weighted Score
+       │
+       ▼
+Ranked Donors
+```
+
+This makes the matching process deterministic, explainable and easier to test.
+
+---
+
+# 📈 Engineering Decisions
+
+## Why Spring Boot?
+
+Spring Boot provides:
+
+- Strong ecosystem for REST APIs
+- Spring Security integration
+- JPA/Hibernate support
+- Validation
+- WebSocket support
+- Production-oriented configuration
+
+## Why PostgreSQL?
+
+PostgreSQL provides a reliable relational database suitable for structured entities such as users, blood requests, donations and relationships between application objects.
+
+## Why JWT?
+
+JWT allows the frontend and backend to communicate using stateless authentication.
+
+This fits the REST API architecture and avoids maintaining server-side authentication sessions for normal API requests.
+
+## Why Rule-Based Matching?
+
+The matching system currently uses a deterministic weighted scoring model rather than a trained machine-learning model.
+
+This makes the score:
+
+- Explainable
+- Deterministic
+- Easy to test
+- Easy to debug
+- Appropriate for the current available data
+
+The scoring engine can be evolved later if sufficient real-world historical data becomes available.
+
+---
+
+# 🐳 Running with Docker
+
+Make sure Docker Desktop is running.
+
+From the project root:
+
+```powershell
+docker compose up --build
+```
+
+To stop the containers:
+
+```powershell
+docker compose down
+```
+
+Typical services include:
+
+```text
+Frontend
+Backend
+PostgreSQL
+```
+
+The backend communicates with PostgreSQL through the Docker Compose network.
+
+---
+
+# ⚙️ Environment Variables
+
+Create your environment configuration using the provided example file.
+
+Example:
+
+```text
+DB_HOST=
+DB_PORT=
+DB_NAME=
+DB_USERNAME=
+DB_PASSWORD=
+
+JWT_SECRET=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+Do not commit real secrets to GitHub.
+
+The repository should contain only example configuration such as:
+
+```text
+.env.example
+```
 
 ---
 
 # 📁 Project Structure
 
 ```text
-BLOOD-LINK--AI/
+BloodLink
 │
-├── bloodlink-backend/
+├── bloodlink-backend
 │   │
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/bloodlink/bloodlink_backend/
-│   │   │   │       │
-│   │   │   │       ├── config/
-│   │   │   │       ├── controller/
-│   │   │   │       ├── dto/
-│   │   │   │       ├── entity/
-│   │   │   │       ├── exception/
-│   │   │   │       ├── repo/
-│   │   │   │       ├── security/
-│   │   │   │       ├── service/
-│   │   │   │       └── util/
+│   ├── src
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com.bloodlink
+│   │   │   │       ├── config
+│   │   │   │       ├── controller
+│   │   │   │       ├── dto
+│   │   │   │       ├── entity
+│   │   │   │       ├── exception
+│   │   │   │       ├── repo
+│   │   │   │       ├── security
+│   │   │   │       ├── service
+│   │   │   │       └── util
+│   │   │   │
+│   │   │   └── resources
+│   │   │       └── application.yml
 │   │   │
-│   │   │   └── resources/
-│   │   │
-│   │   └── test/
+│   │   └── test
 │   │
 │   └── pom.xml
 │
-└── frontend/
-    │
-    ├── src/
-    │   ├── components/
-    │   ├── pages/
-    │   ├── services/
-    │   └── main.jsx
-    │
-    ├── package.json
-    └── vite.config.js
+├── src
+│   ├── components
+│   ├── services
+│   ├── types
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+│
+├── docs
+│   └── screenshots
+│
+├── .env.example
+├── docker-compose.yml
+├── package.json
+├── vite.config.js
+└── README.md
 ```
 
 ---
 
-# 🔐 Authentication Architecture
+# 🔄 Application Flow
 
 ```text
-                 User
-                  │
-                  ▼
-          Login / Register
-                  │
-                  ▼
-          Spring Security
-                  │
-                  ▼
-          Authentication
-                  │
-                  ▼
-             JWT Token
-                  │
-                  ▼
-       Authorization Header
-                  │
-                  ▼
-        JwtAuthenticationFilter
-                  │
-                  ▼
-        Validate JWT Signature
-                  │
-                  ▼
-         Load User Details
-                  │
-                  ▼
-       SecurityContextHolder
-                  │
-                  ▼
-          Protected API
+                  ┌───────────────┐
+                  │     User      │
+                  └───────┬───────┘
+                          │
+                          ▼
+                  ┌───────────────┐
+                  │ React Client  │
+                  └───────┬───────┘
+                          │
+                    REST / JWT
+                          │
+                          ▼
+                  ┌───────────────┐
+                  │ Spring Boot   │
+                  │    Backend    │
+                  └───────┬───────┘
+                          │
+             ┌────────────┼────────────┐
+             ▼            ▼            ▼
+          Security     Services      WebSocket
+             │            │            │
+             │            ▼            │
+             │       Matching Engine   │
+             │            │            │
+             └────────────┼────────────┘
+                          │
+                          ▼
+                     PostgreSQL
 ```
 
 ---
 
-# 🌐 API Overview
-
-## Authentication
-
-```http
-POST /api/auth/register
-POST /api/auth/login
-```
-
-## Blood Requests
-
-```http
-POST /api/blood-request
-GET  /api/blood-request/pending
-```
-
-## Donors
-
-```http
-GET /api/donors/{userId}
-```
-
-## Matching
-
-```http
-GET /api/matching/eligible/{requestId}
-```
-
-> The API list can be expanded as additional endpoints are added.
-
----
-
-# 📖 API Documentation
-
-Swagger/OpenAPI is integrated into the backend.
-
-When running the backend locally:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-Swagger provides an interactive interface for exploring and testing the available REST APIs.
-
----
-
-# 🧪 Testing
-
-The backend contains automated tests covering authentication, security, matching, notification services, patient services, and real-time functionality.
-
-### Test Coverage Areas
-
-```text
-Authentication
-    │
-    ├── Registration
-    ├── Login
-    └── Security
-
-Matching
-    │
-    ├── Donor Eligibility
-    ├── Blood Compatibility
-    ├── Ranking
-    └── Real-Time Matching
-
-Notifications
-    │
-    ├── Notification Service
-    └── Real-Time Notifications
-
-Patient Services
-    │
-    └── Service Layer
-```
-
-Run tests with Maven:
-
-```bash
-./mvnw test
-```
-
-On Windows:
-
-```powershell
-.\mvnw.cmd test
-```
-
----
-
-# 🐳 Docker
-
-BloodLink supports containerized development using Docker Compose.
-
-The application uses containers for the backend and PostgreSQL database.
-
-## Start the application
-
-```bash
-docker compose up --build
-```
-
-## Stop containers
-
-```bash
-docker compose down
-```
-
-## Check running containers
-
-```bash
-docker compose ps
-```
-
-## View backend logs
-
-```bash
-docker compose logs backend
-```
-
----
-
-# ⚙️ Environment Configuration
-
-Create a local `.env` file containing your environment-specific values:
-
-```env
-DB_USERNAME=your_database_username
-DB_PASSWORD=your_database_password
-
-JWT_SECRET=your_long_random_secret
-
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
-
-Never commit real credentials, OAuth secrets, database passwords, or JWT secrets to GitHub.
-
-Use `.env.example` as the public configuration template.
-
----
-
-# 💻 Local Development
-
-## Backend
-
-Navigate to the backend:
-
-```bash
-cd bloodlink-backend
-```
-
-Run with Maven:
-
-```bash
-./mvnw spring-boot:run
-```
-
-### Windows
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Backend:
-
-```text
-http://localhost:8080
-```
-
----
-
-## Frontend
-
-Navigate to the frontend:
-
-```bash
-cd frontend
-```
-
-Install dependencies:
-
-```bash
-npm install
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
-
----
-
-# 🧠 Engineering Decisions
-
-## Why Spring Boot?
-
-Spring Boot provides a mature ecosystem for building secure REST APIs, database-backed applications, validation, testing, and real-time communication.
-
-The layered architecture separates:
-
-- HTTP/API handling
-- Business logic
-- Persistence
-- Security
-- Data transfer
-
-This makes the backend easier to maintain and test.
-
----
-
-## Why PostgreSQL?
-
-BloodLink contains relational data such as:
-
-- Users
-- Donors
-- Patients
-- Hospitals
-- Blood Requests
-- Donor Matches
-- Notifications
-- Donation Records
-
-PostgreSQL provides relational consistency and integrates naturally with Spring Data JPA.
-
----
-
-## Why JWT?
-
-JWT allows authenticated API requests to carry the user's identity without requiring a traditional server-side session for every request.
-
-The backend validates incoming JWT tokens through a custom authentication filter before protected endpoints are accessed.
-
----
-
-## Why WebSocket?
-
-Emergency blood requests are time-sensitive.
-
-Polling the server repeatedly can introduce unnecessary requests and notification delays.
-
-WebSocket/STOMP provides a persistent communication channel for delivering critical donor notifications in real time.
-
----
-
-## Why Explainable Matching?
-
-The matching algorithm is deterministic and explainable.
-
-Instead of returning an unexplained recommendation, BloodLink calculates a score using identifiable factors:
-
-```text
-Blood Compatibility
-        +
-Distance
-        +
-Availability
-        +
-Donation History
-        +
-Reliability
-        +
-BloodLink Score
-        ↓
-   Final Score
-        ↓
-      Rank
-```
-
-This makes the system easier to:
-
-- Test
-- Debug
-- Explain
-- Tune
-- Audit
-
----
-
-# ⚡ Technical Challenge
-
-## Real-Time Emergency Notifications
-
-One of the key engineering challenges was delivering emergency requests to suitable donors without relying entirely on polling.
-
-The solution separates persistent application state from time-sensitive communication.
-
-```text
-REST API
-   │
-   └── Persistent request and match data
-
-WebSocket
-   │
-   └── Real-time emergency notifications
-```
-
-The matching service first identifies and ranks eligible donors. For critical requests, the top 10 ranked matches are then passed to the real-time notification service.
-
-This architecture allows REST APIs to handle persistent application operations while WebSocket handles time-sensitive notification delivery.
-
----
-
-# 🔍 Algorithm Complexity
-
-Let:
-
-```text
-N = number of eligible donor candidates
-```
-
-### Eligibility Filtering
-
-Each candidate donor is checked once:
-
-```text
-O(N)
-```
-
-### Score Calculation
-
-Each eligible donor is scored once:
-
-```text
-O(N)
-```
-
-### Ranking
-
-Donors are sorted by their final score:
-
-```text
-O(N log N)
-```
-
-### Overall Matching Complexity
-
-The dominant in-memory operation is sorting:
-
-```text
-O(N log N)
-```
-
-The geographic donor lookup is performed by the database/repository layer, so its exact cost depends on the database query and indexing strategy.
-
----
-
-# 📌 Project Status
-
-| Area | Status |
-|------|--------|
-| React Frontend | ✅ |
-| Spring Boot Backend | ✅ |
-| PostgreSQL | ✅ |
-| JWT Authentication | ✅ |
-| Google OAuth2 | ✅ |
-| Role-Based Security | ✅ |
-| Blood Requests | ✅ |
-| Donor Matching | ✅ |
-| Donor Ranking | ✅ |
-| WebSocket Notifications | ✅ |
-| Swagger/OpenAPI | ✅ |
-| Docker Compose | ✅ |
-| Automated Tests | ✅ |
-| Environment Configuration | ✅ |
-
----
-
-# 📸 Screenshots
-
-Add screenshots of the actual application here.
-
-Recommended screenshots:
-
-### Login
-
-_Add Login Screenshot Here_
-
-### Donor Dashboard
-
-_Add Donor Dashboard Screenshot Here_
-
-### Emergency Blood Request
-
-_Add Blood Request Screenshot Here_
-
-### Donor Matching Results
-
-_Add Matching Results Screenshot Here_
-
-### Real-Time Emergency Notification
-
-_Add Real-Time Notification Screenshot Here_
-
----
-
-# 🚀 Future Improvements
+# 🎯 Future Improvements
 
 Potential future improvements include:
 
-- Redis caching
-- Geospatial database optimization
-- Email/SMS emergency notifications
-- Hospital verification
+- More advanced donor recommendation models
+- Historical matching analytics
+- Improved notification preferences
+- Hospital verification workflows
+- Location-based optimization
+- More extensive integration testing
+- Performance benchmarking for large donor datasets
 - Monitoring and observability
-- Performance and load testing
-- Advanced analytics
-- Cloud deployment
-- More comprehensive integration testing
-- Improved matching model based on historical response data
-
-These are planned improvements and are not represented as currently implemented functionality.
 
 ---
 
-# 📈 Project Highlights
+# 👨‍💻 Author
 
-- Full-stack React + Spring Boot application
-- Explainable multi-factor donor ranking algorithm
-- Priority-based geographic donor filtering
-- Blood compatibility validation
-- 90-day donation eligibility rule
-- JWT + Google OAuth2 authentication
-- Role-based authorization
-- Real-time WebSocket/STOMP emergency alerts
-- PostgreSQL persistence with Spring Data JPA
-- Dockerized backend and database environment
-- Automated backend test suite
-- Swagger/OpenAPI API documentation
+Developed as a full-stack engineering project focused on:
+
+- Backend development
+- Secure authentication
+- Database design
+- Real-time communication
+- Algorithmic donor matching
+- Automated testing
+- Deployment and containerization
 
 ---
 
-# 👩‍💻 Author
+# 📄 License
 
-## Mannat Sharma
-
-Java • Spring Boot • React • PostgreSQL • Docker
-
----
-
-# ⭐ BloodLink
-
-### Connecting the right donor with the right emergency — faster.
+This project is developed for educational and portfolio purposes.
