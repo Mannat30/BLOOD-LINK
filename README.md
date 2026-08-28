@@ -177,7 +177,7 @@ The result is then used to rank compatible donors.
 
 BloodLink follows a layered full-stack architecture combining React, Spring Boot, JWT-based security, PostgreSQL/PostGIS, and donor matching services.
 
-![BloodLink Architecture](docs/architecture/bloodlink-architecture.svg)
+![BloodLink Architecture](docs/screenshots/bloodlink-architecture%20%283%29.svg)
 
 BloodLink follows a layered Spring Boot architecture.
 
