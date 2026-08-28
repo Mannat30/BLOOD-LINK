@@ -173,7 +173,9 @@ The result is then used to rank compatible donors.
 
 ---
 
-# 🏗️ Architecture
+## 🏗️ System Architecture
+
+![BloodLink Architecture](docs/architecture/bloodlink-architecture.svg)
 
 BloodLink follows a layered Spring Boot architecture.
 
