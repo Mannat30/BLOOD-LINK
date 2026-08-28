@@ -429,30 +429,19 @@ PostgreSQL
 JPA entities represent the main application domain and repositories provide database access.
 
 ---
+## Screenshots
 
-# 📸 Screenshots
+### Login
+![Login](docs/screenshots/login.png)
 
-## Login
+### Donor Dashboard
+![Donor Dashboard](docs/screenshots/Donor%20Dashboard.png)
 
-![BloodLink Login](docs/screenshots/login.png)
+### Patient Dashboard
+![Patient Dashboard](docs/screenshots/Patient%20Dashboard.png)
 
-## Donor Dashboard
-
-![Donor Dashboard](docs/screenshots/donor-dashboard.png)
-
-## Donor Profile
-
-![Donor Profile](docs/screenshots/donor-profile.png)
-
-## Blood Request
-
-![Blood Request](docs/screenshots/blood-request.png)
-
-## Notifications
-
-![Notifications](docs/screenshots/notifications.png)
-
-> Screenshots demonstrate the main user workflows and application interface.
+### Hospital
+![Hospital](docs/screenshots/Hospital.png) the main user workflows and application interface.
 
 ---
 
